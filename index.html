@@ -1,0 +1,1061 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Spyline — Covert Operations Control</title>
+  <meta name="description" content="Spyline Agency — mission control, agent roster, secure feeds." />
+  <style>
+    /* ===========================
+       Spyline — Global Styles
+       ===========================
+       This CSS block is intentionally long and descriptive to provide a
+       self-contained, stylish UI — responsive grid, neon accents, animated
+       microinteractions, and theme variables for easy tweaks.
+    */
+    :root{
+      --bg:#071019;
+      --panel:#0b1620;
+      --muted:#8aa0b0;
+      --accent:#00c2a8;
+      --accent-2:#6a9cff;
+      --danger:#ff6b6b;
+      --glass: rgba(255,255,255,0.03);
+      --glass-2: rgba(255,255,255,0.02);
+      --mono: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+      --radius:12px;
+    }
+
+    html,body{
+      height:100%;
+      margin:0;
+      padding:0;
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: radial-gradient(1200px 600px at 10% 10%, rgba(0,194,168,0.04), transparent),
+                  radial-gradient(900px 500px at 90% 85%, rgba(106,156,255,0.03), transparent),
+                  var(--bg);
+      color:#d6e7ef;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      line-height:1.4;
+      font-size:16px;
+    }
+
+    /* Layout */
+    .wrap{
+      max-width:1200px;
+      margin:28px auto;
+      padding:20px;
+    }
+
+    header{
+      display:flex;
+      gap:18px;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:18px;
+    }
+
+    .brand{
+      display:flex;
+      gap:12px;
+      align-items:center;
+    }
+
+    .logo{
+      width:56px;
+      height:56px;
+      border-radius:12px;
+      background: linear-gradient(135deg,var(--accent),var(--accent-2));
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:700;
+      color:#021018;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.6), inset 0 -6px 18px rgba(255,255,255,0.05);
+      font-family:var(--mono);
+      letter-spacing:1px;
+    }
+
+    .brand h1{
+      margin:0;
+      font-size:20px;
+      letter-spacing:0.6px;
+    }
+
+    .brand p{
+      margin:0;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    nav {
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+
+    .btn{
+      padding:10px 14px;
+      background:transparent;
+      border:1px solid rgba(255,255,255,0.04);
+      color:var(--muted);
+      border-radius:10px;
+      cursor:pointer;
+      font-weight:600;
+      transition:all .18s ease;
+      backdrop-filter: blur(6px);
+    }
+
+    .btn:hover{
+      transform:translateY(-3px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.6), 0 0 18px rgba(0,194,168,0.06);
+      color:var(--accent);
+      border-color: rgba(0,194,168,0.12);
+    }
+
+    main{
+      display:grid;
+      grid-template-columns: 1fr 360px;
+      gap:18px;
+      align-items:start;
+    }
+
+    /* Left column panels */
+    .panels{
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+    }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border:1px solid rgba(255,255,255,0.04);
+      padding:16px;
+      border-radius:var(--radius);
+      box-shadow: 0 6px 24px rgba(2,6,10,0.5);
+    }
+
+    /* Hero */
+    .hero{
+      display:flex;
+      gap:18px;
+      align-items:center;
+      justify-content:space-between;
+      padding:22px;
+    }
+
+    .hero .left{
+      max-width:64%;
+    }
+
+    .hero h2{
+      margin:0 0 8px 0;
+      font-size:26px;
+      letter-spacing:0.4px;
+    }
+
+    .hero p{
+      margin:0;
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    .status-pill{
+      display:inline-flex;
+      gap:10px;
+      align-items:center;
+      padding:8px 12px;
+      background: linear-gradient(90deg, rgba(0,194,168,0.08), rgba(106,156,255,0.03));
+      border-radius:999px;
+      color:var(--accent);
+      font-weight:700;
+      font-family:var(--mono);
+      letter-spacing:0.8px;
+    }
+
+    /* Mission feed / Live */
+    .live-feed{
+      max-height:340px;
+      overflow:auto;
+      padding:10px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    .feed-item{
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+      padding:10px;
+      border-radius:10px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.006));
+      border:1px solid rgba(255,255,255,0.02);
+    }
+
+    .dot{
+      width:12px;
+      height:12px;
+      border-radius:50%;
+      background:var(--accent);
+      box-shadow:0 0 8px rgba(0,194,168,0.15);
+      margin-top:6px;
+    }
+    .dot.off{
+      background: #444;
+    }
+
+    .feed-item small{
+      color:var(--muted);
+      display:block;
+    }
+
+    /* Right column */
+    .sidebar{
+      display:flex;
+      gap:14px;
+      flex-direction:column;
+      position:sticky;
+      top:22px;
+    }
+
+    .agent-list{
+      display:grid;
+      gap:8px;
+    }
+
+    .agent{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      padding:10px;
+      border-radius:10px;
+      background:var(--glass);
+      border:1px solid rgba(255,255,255,0.02);
+      cursor:pointer;
+      transition:transform .14s ease;
+    }
+    .agent:hover{ transform:translateY(-4px); box-shadow:0 10px 30px rgba(0,0,0,0.6); }
+    .agent .avatar{
+      width:48px;height:48px;border-radius:10px;background:linear-gradient(180deg,#fff0,#fff0);display:flex;align-items:center;justify-content:center;font-weight:700;font-family:var(--mono);color:var(--accent-2);
+      border:1px solid rgba(255,255,255,0.03);
+    }
+
+    .muted{ color:var(--muted); font-size:13px; }
+
+    /* Secure login mock */
+    .secure{
+      display:grid;
+      gap:8px;
+    }
+    .secure input, .secure select, .secure textarea{
+      width:100%;
+      padding:10px 12px;
+      background:transparent;
+      border:1px solid rgba(255,255,255,0.03);
+      border-radius:8px;
+      color:inherit;
+      outline:none;
+      font-size:14px;
+    }
+
+    .meter{
+      height:8px;
+      background:rgba(255,255,255,0.02);
+      border-radius:6px;
+      overflow:hidden;
+    }
+    .meter > i{ display:block;height:100%;width:0; background:linear-gradient(90deg,var(--accent),var(--accent-2)); transition:width .4s ease; }
+
+    /* Console / Terminal */
+    .terminal{
+      background: linear-gradient(180deg, rgba(0,0,0,0.18), rgba(255,255,255,0.02));
+      color:#bfeee2;
+      font-family: var(--mono);
+      padding:12px;
+      border-radius:10px;
+      min-height:180px;
+      max-height:300px;
+      overflow:auto;
+      border:1px solid rgba(0,0,0,0.6);
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+      font-size:13px;
+    }
+
+    .map{
+      width:100%;
+      height:300px;
+      border-radius:10px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.008));
+      border:1px solid rgba(255,255,255,0.02);
+      position:relative;
+      overflow:hidden;
+    }
+
+    .map .blip{
+      position:absolute;
+      width:12px;height:12px;border-radius:50%;
+      background:var(--danger);
+      box-shadow:0 6px 16px rgba(255,107,107,0.25);
+      transform:translate(-6px,-6px);
+      animation:ping 2.4s infinite;
+    }
+
+    @keyframes ping{
+      0%{ transform:translate(-6px,-6px) scale(1); opacity:1; }
+      70%{ transform:translate(-6px,-6px) scale(1.8); opacity:0; }
+      100%{ transform:translate(-6px,-6px) scale(1.8); opacity:0; }
+    }
+
+    /* Codename generator styles */
+    .codename{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      justify-content:space-between;
+    }
+
+    .faint{
+      color: rgba(214,231,239,0.22);
+    }
+
+    /* Footer */
+    footer{
+      margin-top:24px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    /* Responsive */
+    @media (max-width:1000px){
+      main{ grid-template-columns:1fr; }
+      .hero .left{ max-width:100%; }
+      .sidebar{ position:static; }
+    }
+
+    /* Lots of decorative classes to pad out file length and allow demonstration */
+    .grid-3{ display:grid; grid-template-columns: repeat(3,1fr); gap:10px; }
+    .mini{ font-size:12px; color:var(--muted); }
+    .badge{ padding:6px 10px; border-radius:999px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.02); font-weight:700; font-family:var(--mono); color:var(--accent); }
+    .hidden{ display:none !important; }
+
+  </style>
+</head>
+<body>
+  <div class="wrap" role="application" aria-label="Spyline control panel">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true">SPY</div>
+        <div>
+          <h1>Spyline</h1>
+          <p>Covert Operations Control • Agency ID: SL-09</p>
+        </div>
+      </div>
+
+      <nav>
+        <button class="btn" id="btn-mission">Missions</button>
+        <button class="btn" id="btn-agents">Agents</button>
+        <button class="btn" id="btn-tools">Tools</button>
+        <button class="btn" id="open-login">Secure Login</button>
+      </nav>
+    </header>
+
+    <main>
+      <!-- LEFT COLUMN: Mission control, live feed, mission details -->
+      <section class="panels" aria-live="polite">
+        <div class="card hero" id="hero">
+          <div class="left">
+            <h2>Mission Control</h2>
+            <p>Welcome, Director. Monitor active operations, coordinate agents, and review live telemetry from field units. Use the tools on the right for agent management and secure utilities.</p>
+            <div style="margin-top:12px;">
+              <span class="status-pill">ONLINE • 7 Ops</span>
+              <span style="margin-left:12px;" class="muted">Last sync: <span id="last-sync">--</span></span>
+            </div>
+          </div>
+
+          <div class="right" style="min-width:200px;text-align:right;">
+            <div class="badge">Threat Level: <span id="threat-level" style="margin-left:8px;">LOW</span></div>
+            <div style="height:12px"></div>
+            <div class="mini faint">Quick controls</div>
+            <div style="margin-top:8px;display:flex;gap:8px;justify-content:flex-end;">
+              <button class="btn" id="btn-alert">Send Alert</button>
+              <button class="btn" id="btn-scan">Run Scan</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="margin:0 0 10px 0;">Live Operation Feed</h3>
+          <div class="live-feed" id="feed">
+            <!-- feed items injected by JS -->
+          </div>
+          <div style="display:flex;gap:8px;margin-top:12px;">
+            <button class="btn" id="feed-clear">Clear</button>
+            <button class="btn" id="feed-simulate">Simulate Event</button>
+            <div style="flex:1"></div>
+            <div class="muted">Auto-refresh: <span id="auto-refresh">ON</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="margin:0 0 10px 0;">Mission Brief</h3>
+          <div id="mission-brief" class="muted" style="white-space:pre-wrap; font-family:inherit; font-size:14px;">
+            Loading latest mission...
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="margin:0 0 10px 0;">Communications Console</h3>
+          <div class="terminal" id="terminal" role="log" aria-live="polite">
+            <div>> system console initialized.</div>
+            <div>> awaiting commands...</div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <input id="cmd-input" placeholder="Type a console command (try: status, list agents, encrypt hello)" class="mini" style="flex:1;background:transparent;border:1px solid rgba(255,255,255,0.03);padding:8px;border-radius:8px;color:inherit;" />
+            <button class="btn" id="run-cmd">Run</button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- RIGHT COLUMN: Sidebar with agents and tools -->
+      <aside class="sidebar">
+        <div class="card secure" id="login-card">
+          <h4 style="margin:0 0 8px 0;">Secure Login (Mock)</h4>
+          <div class="muted">Authentication Level: <strong id="auth-level">Unverified</strong></div>
+          <input id="username" placeholder="Agent codename" aria-label="Agent codename" />
+          <input id="password" placeholder="Passphrase" type="password" />
+          <div class="meter" aria-hidden="true"><i id="pw-meter"></i></div>
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <button class="btn" id="login-btn">Authenticate</button>
+            <button class="btn" id="gen-codename">Generate Codename</button>
+          </div>
+          <div style="margin-top:10px;" class="muted mini">This login is a client-side mock for demonstration only.</div>
+        </div>
+
+        <div class="card">
+          <h4 style="margin:0 0 8px 0;">Agents</h4>
+          <div class="agent-list" id="agents">
+            <!-- agents injected by JS -->
+          </div>
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <button class="btn" id="add-agent">Recruit</button>
+            <button class="btn" id="shuffle-agents">Shuffle Roster</button>
+            <div style="flex:1"></div>
+            <div class="muted mini">Active: <span id="active-count">0</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h4 style="margin:0 0 8px 0;">Global Map</h4>
+          <div class="map" id="global-map" aria-hidden="false">
+            <!-- simulated blips -->
+          </div>
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <button class="btn" id="drop-blip">Drop Blip</button>
+            <button class="btn" id="clear-blips">Clear Blips</button>
+            <div style="flex:1"></div>
+            <div class="muted mini">Connections: <span id="blip-count">0</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h4 style="margin:0 0 8px 0;">Utilities</h4>
+          <div style="display:grid;gap:8px;">
+            <button class="btn" id="open-cipher">Cipher Tool</button>
+            <button class="btn" id="open-codename">Codename Vault</button>
+            <button class="btn" id="open-logs">Export Logs</button>
+          </div>
+        </div>
+
+      </aside>
+    </main>
+
+    <footer>
+      <div>© Spyline Agency • Built client-side • Prototype</div>
+      <div class="muted">v0.9 • <span id="time-now">--</span></div>
+    </footer>
+  </div>
+
+  <!-- Hidden modals / overlays (simple) -->
+  <div id="modal-container" class="hidden" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;z-index:2000;">
+    <div id="modal" class="card" style="width:720px;max-width:calc(100% - 48px);">
+      <!-- content injected -->
+    </div>
+  </div>
+
+  <script>
+    // ============================
+    // Spyline Client-side Logic
+    // ============================
+    // This JS includes:
+    // - fake feed simulation
+    // - agent roster management
+    // - login mock with password strength meter
+    // - codename generator
+    // - cipher (Caesar) demo
+    // - map blips with simple animation
+    // - terminal command parser
+    // - export logs
+    // - many comments for learning and extension
+    // ============================
+
+    // Basic utilities
+    function qs(sel){ return document.querySelector(sel); }
+    function qsa(sel){ return Array.from(document.querySelectorAll(sel)); }
+    function nowISO(){ return new Date().toLocaleString(); }
+
+    // Element refs
+    const feed = qs('#feed');
+    const terminal = qs('#terminal');
+    const cmdInput = qs('#cmd-input');
+    const runCmdBtn = qs('#run-cmd');
+    const lastSyncEl = qs('#last-sync');
+    const timeNowEl = qs('#time-now');
+    const autoRefreshEl = qs('#auto-refresh');
+    const authLevel = qs('#auth-level');
+    const pwMeter = qs('#pw-meter');
+    const loginBtn = qs('#login-btn');
+    const usernameInput = qs('#username');
+    const passwordInput = qs('#password');
+    const agentsEl = qs('#agents');
+    const activeCount = qs('#active-count');
+    const blipCount = qs('#blip-count');
+    const mapEl = qs('#global-map');
+    const modalContainer = qs('#modal-container');
+    const modal = qs('#modal');
+
+    // App state (in-memory)
+    const state = {
+      feed: [],
+      agents: [
+        {codename:'Echo-1', real:'Unknown', skill:'Infiltration', status:'Active', avatar:'E1'},
+        {codename:'Ivory-2', real:'Unknown', skill:'Signals', status:'Active', avatar:'I2'},
+        {codename:'Raven-7', real:'Unknown', skill:'Field Ops', status:'Active', avatar:'R7'},
+      ],
+      blips: [],
+      logs: [],
+      autoRefresh: true,
+      threat: 'LOW',
+    };
+
+    // Utility: push to terminal and logs
+    function logTerminal(msg, tag){
+      const time = new Date().toLocaleTimeString();
+      const el = document.createElement('div');
+      el.innerHTML = `<span style="opacity:.5">[${time}]</span> ${msg}`;
+      terminal.appendChild(el);
+      terminal.scrollTop = terminal.scrollHeight;
+      // store in logs
+      state.logs.push({t: new Date().toISOString(), msg, tag});
+    }
+
+    // Initialize UI with state
+    function init(){
+      renderAgents();
+      renderFeed();
+      updateHeaderTime();
+      setInterval(updateHeaderTime, 1000);
+      lastSyncEl.textContent = nowISO();
+      updateActiveCount();
+      updateThreat();
+      timeNowEl.textContent = new Date().toLocaleString();
+      logTerminal('Spyline console online.');
+      // Auto simulate periodic feed items
+      setInterval(()=>{ if (state.autoRefresh) simulateEvent(); }, 7000);
+    }
+
+    // -------------
+    // FEED
+    // -------------
+    function addFeedItem(title, detail, severity='info'){
+      const id = Math.random().toString(36).slice(2,9);
+      const item = {id, title, detail, severity, ts: new Date().toISOString()};
+      state.feed.unshift(item);
+      state.feed = state.feed.slice(0,80); // cap
+      renderFeed();
+      logTerminal(`[FEED] ${title} — ${detail}`, 'feed');
+    }
+
+    function renderFeed(){
+      feed.innerHTML = '';
+      state.feed.forEach(it=>{
+        const f = document.createElement('div');
+        f.className = 'feed-item';
+        f.innerHTML = `<div class="dot ${it.severity==='offline'?'off':''}" aria-hidden="true"></div>
+          <div>
+            <div style="font-weight:700">${it.title}</div>
+            <small>${new Date(it.ts).toLocaleString()} • ${it.detail}</small>
+          </div>`;
+        feed.appendChild(f);
+      });
+    }
+
+    qs('#feed-clear').addEventListener('click', ()=>{ state.feed=[]; renderFeed(); logTerminal('Feed cleared by operator.', 'action'); });
+    qs('#feed-simulate').addEventListener('click', ()=>simulateEvent());
+
+    function simulateEvent(){
+      const sample = [
+        ['SIGINT captured','Unidentified brief transmission intercepted near sector 4B.','info'],
+        ['Agent rendezvous','Echo-1 checked in at safe house Alpha.','info'],
+        ['Breach detected','Perimeter alarm triggered at peripheral outpost.','warning'],
+        ['Local blackout','Power lost in urban grid — comms degraded.','warning'],
+        ['Suspected tail','Agent reported possible tailing at waypoint.','critical'],
+        ['Compromise','Secure channel attempt failed — possible interception.','critical'],
+        ['False alarm','Routine maintenance triggered sensor alert.','info'],
+      ];
+      const [t,d,s] = sample[Math.floor(Math.random()*sample.length)];
+      addFeedItem(t,d,s);
+      lastSyncEl.textContent = nowISO();
+      // escalate threat if critical
+      if(s==='critical') setThreat('HIGH');
+      else if(Math.random()>0.85) setThreat('MEDIUM');
+    }
+
+    // -------------
+    // AGENTS
+    // -------------
+    function renderAgents(){
+      agentsEl.innerHTML = '';
+      state.agents.forEach((a,idx)=>{
+        const node = document.createElement('div');
+        node.className='agent';
+        node.dataset.index = idx;
+        node.innerHTML = `
+          <div class="avatar" aria-hidden="true">${a.avatar}</div>
+          <div style="flex:1">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div style="font-weight:700">${a.codename}</div>
+              <div class="muted mini">${a.status}</div>
+            </div>
+            <div class="muted">${a.skill} • ${a.real}</div>
+          </div>
+        `;
+        node.addEventListener('click', ()=>openAgentDetail(idx));
+        agentsEl.appendChild(node);
+      });
+      updateActiveCount();
+    }
+
+    function updateActiveCount(){
+      activeCount.textContent = state.agents.filter(a=>a.status==='Active').length;
+    }
+
+    function openAgentDetail(idx){
+      const a = state.agents[idx];
+      modalContainer.classList.remove('hidden');
+      modal.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <h3 style="margin:0;">Agent Detail • ${a.codename}</h3>
+          <button class="btn" id="close-modal">Close</button>
+        </div>
+        <div style="display:flex;gap:16px;margin-top:12px;">
+          <div style="flex:1;">
+            <div class="card" style="padding:12px;">
+              <div style="display:flex;gap:12px;align-items:center;">
+                <div style="width:64px;height:64px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-weight:800;color:#021018;font-family:var(--mono);">${a.avatar}</div>
+                <div>
+                  <div style="font-weight:800">${a.codename}</div>
+                  <div class="muted mini">${a.skill} • ${a.status}</div>
+                </div>
+              </div>
+              <div style="margin-top:12px;" class="muted">
+                Real identity: ${a.real}<br/>
+                Last mission: Classified<br/>
+                Clearance: Top Secret
+              </div>
+            </div>
+          </div>
+          <div style="width:260px;">
+            <div class="card" style="padding:12px;">
+              <h4 style="margin:0 0 8px 0;">Actions</h4>
+              <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;">
+                <button class="btn" id="btn-deploy">Deploy</button>
+                <button class="btn" id="btn-retire">Toggle Active</button>
+                <button class="btn" id="btn-msg">Send Message</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      qs('#close-modal').addEventListener('click', ()=> modalContainer.classList.add('hidden'));
+      qs('#btn-deploy').addEventListener('click', ()=>{
+        addFeedItem('Deployment', `${a.codename} deployed to hot zone.`, 'info');
+        logTerminal(`Deployed ${a.codename}`, 'action');
+        modalContainer.classList.add('hidden');
+      });
+      qs('#btn-retire').addEventListener('click', ()=>{
+        a.status = (a.status==='Active') ? 'Standby' : 'Active';
+        renderAgents();
+        modalContainer.classList.add('hidden');
+        logTerminal(`Toggled status for ${a.codename}`, 'action');
+      });
+      qs('#btn-msg').addEventListener('click', ()=>{
+        const msg = prompt(`Message to ${a.codename}:`);
+        if(msg){ addFeedItem(`Message to ${a.codename}`, msg, 'info'); logTerminal(`Sent message to ${a.codename}`, 'action'); modalContainer.classList.add('hidden'); }
+      });
+    }
+
+    qs('#add-agent').addEventListener('click', ()=>{
+      const base = ['Onyx','Echo','Raven','Ivory','Ghost','Atlas','Viper','Nyx','Orion','Zephyr'];
+      const name = base[Math.floor(Math.random()*base.length)]+'-'+(Math.floor(Math.random()*99)+1);
+      const avatar = name.split('-')[0].slice(0,2).toUpperCase();
+      state.agents.push({codename:name, real:'Unknown', skill:['Signals','Field Ops','Infiltration','Cyber'][Math.floor(Math.random()*4)], status:'Active', avatar});
+      renderAgents();
+      logTerminal(`Recruited new agent: ${name}`, 'action');
+    });
+
+    qs('#shuffle-agents').addEventListener('click', ()=>{
+      state.agents = state.agents.sort(()=>Math.random()-0.5);
+      renderAgents();
+      logTerminal('Shuffled roster.', 'action');
+    });
+
+    // -------------
+    // MAP BLIPS
+    // -------------
+    function dropBlip(){
+      const x = Math.random()*100;
+      const y = Math.random()*100;
+      const id = Math.random().toString(36).slice(2,9);
+      state.blips.push({id,x,y,ts:new Date().toISOString()});
+      renderBlips();
+      logTerminal(`Blip dropped (${id}) at ${Math.round(x)}%,${Math.round(y)}%`, 'map');
+    }
+
+    function renderBlips(){
+      mapEl.innerHTML = '';
+      state.blips.forEach(b=>{
+        const el = document.createElement('div');
+        el.className='blip';
+        el.style.left = b.x + '%';
+        el.style.top = b.y + '%';
+        el.title = `Blip ${b.id} — ${new Date(b.ts).toLocaleString()}`;
+        mapEl.appendChild(el);
+      });
+      blipCount.textContent = state.blips.length;
+    }
+
+    qs('#drop-blip').addEventListener('click', ()=> {
+      dropBlip();
+    });
+    qs('#clear-blips').addEventListener('click', ()=>{ state.blips=[]; renderBlips(); logTerminal('Cleared all map blips.', 'map'); });
+
+    // -------------
+    // LOGIN + CODENAME GENERATOR
+    // -------------
+    function calcPasswordStrength(pw){
+      // naive scoring: length + variety
+      let score = 0;
+      if(!pw) return 0;
+      score += Math.min(40, pw.length*3);
+      if(/[A-Z]/.test(pw)) score += 20;
+      if(/[0-9]/.test(pw)) score += 20;
+      if(/[^A-Za-z0-9]/.test(pw)) score += 20;
+      return Math.min(100, score);
+    }
+
+    passwordInput.addEventListener('input', ()=>{
+      const score = calcPasswordStrength(passwordInput.value);
+      pwMeter.style.width = (score) + '%';
+      if(score<30) pwMeter.style.background = 'linear-gradient(90deg,#ff6b6b,#ffb86b)';
+      else pwMeter.style.background = 'linear-gradient(90deg,var(--accent),var(--accent-2))';
+    });
+
+    qs('#gen-codename').addEventListener('click', ()=>{
+      const name = generateCodename();
+      usernameInput.value = name;
+      logTerminal(`Generated codename: ${name}`, 'util');
+    });
+
+    loginBtn.addEventListener('click', ()=>{
+      const name = usernameInput.value.trim();
+      const pw = passwordInput.value;
+      if(!name || !pw){ alert('Enter codename and passphrase.'); return; }
+      const score = calcPasswordStrength(pw);
+      if(score < 40){
+        authLevel.textContent = 'Weak';
+        authLevel.style.color = 'var(--danger)';
+        logTerminal(`Authentication failed for ${name}. Weak passphrase.`, 'auth');
+        alert('Authentication failed: weak passphrase.');
+      } else {
+        authLevel.textContent = 'AUTHENTICATED';
+        authLevel.style.color = 'var(--accent)';
+        logTerminal(`Authenticated as ${name}.`, 'auth');
+        addFeedItem('Auth Success', `${name} authenticated to console.`, 'info');
+      }
+    });
+
+    function generateCodename(){
+      const wordsA = ['Night','Silent','Crimson','Iron','Shadow','Ghost','Silver','Midnight','Blue','Glacier','Phantom'];
+      const wordsB = ['Fox','Raven','Viper','Hawk','Eagle','Wolf','Serpent','Sentinel','Sable','Warden'];
+      const a = wordsA[Math.floor(Math.random()*wordsA.length)];
+      const b = wordsB[Math.floor(Math.random()*wordsB.length)];
+      const num = Math.floor(Math.random()*99)+1;
+      return `${a}-${b}-${num}`;
+    }
+
+    // -------------
+    // CODENAME VAULT & CIPHER TOOL (Modal)
+    // -------------
+    qs('#open-codename').addEventListener('click', ()=> openCodenameVault());
+    qs('#open-cipher').addEventListener('click', ()=> openCipherTool());
+
+    function openCodenameVault(){
+      modalContainer.classList.remove('hidden');
+      modal.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <h3 style="margin:0;">Codename Vault</h3>
+          <button class="btn" id="close-x">Close</button>
+        </div>
+        <div style="margin-top:12px;">
+          <div style="display:flex;gap:8px;margin-bottom:10px;">
+            <input id="vault-search" placeholder="Search codenames..." />
+            <button class="btn" id="vault-gen">Generate</button>
+            <button class="btn" id="vault-copy">Copy All</button>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;max-height:320px;overflow:auto;" id="vault-list"></div>
+        </div>
+      `;
+      qs('#close-x').addEventListener('click', ()=> modalContainer.classList.add('hidden'));
+      qs('#vault-gen').addEventListener('click', ()=>{
+        const newName = generateCodename();
+        state.agents.push({codename:newName, real:'Unknown', skill:'Unknown', status:'Standby', avatar:newName.split('-')[0].slice(0,2).toUpperCase()});
+        renderAgents();
+        renderVaultList();
+      });
+      qs('#vault-copy').addEventListener('click', ()=>{
+        const txt = state.agents.map(a=>a.codename).join('\\n');
+        navigator.clipboard && navigator.clipboard.writeText(txt);
+        alert('Copied codenames to clipboard');
+      });
+      renderVaultList();
+    }
+
+    function renderVaultList(){
+      const list = qs('#vault-list');
+      list.innerHTML = '';
+      state.agents.forEach(a=>{
+        const el = document.createElement('div');
+        el.className='card';
+        el.style.padding='8px';
+        el.innerHTML = `<div style="font-weight:700">${a.codename}</div><div class="muted mini">${a.skill} • ${a.status}</div>`;
+        list.appendChild(el);
+      });
+    }
+
+    function openCipherTool(){
+      modalContainer.classList.remove('hidden');
+      modal.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <h3 style="margin:0;">Cipher Tool — Caesar Shift</h3>
+          <button class="btn" id="close-cipher">Close</button>
+        </div>
+        <div style="margin-top:12px;display:grid;gap:8px;">
+          <textarea id="cipher-input" placeholder="Plaintext" style="height:120px;"></textarea>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <label class="muted">Shift:</label>
+            <input id="cipher-shift" type="number" min="1" max="25" value="3" style="width:80px;" />
+            <button class="btn" id="cipher-enc">Encrypt</button>
+            <button class="btn" id="cipher-dec">Decrypt</button>
+            <button class="btn" id="cipher-copy">Copy</button>
+            <div style="flex:1"></div>
+            <div class="muted mini">Simple demo — not for real security.</div>
+          </div>
+          <textarea id="cipher-output" placeholder="Result" style="height:120px;"></textarea>
+        </div>
+      `;
+      qs('#close-cipher').addEventListener('click', ()=> modalContainer.classList.add('hidden'));
+      qs('#cipher-enc').addEventListener('click', ()=>{
+        const text = qs('#cipher-input').value;
+        const shift = Number(qs('#cipher-shift').value) || 3;
+        qs('#cipher-output').value = caesarShift(text, shift);
+      });
+      qs('#cipher-dec').addEventListener('click', ()=>{
+        const text = qs('#cipher-input').value;
+        const shift = Number(qs('#cipher-shift').value) || 3;
+        qs('#cipher-output').value = caesarShift(text, 26-shift);
+      });
+      qs('#cipher-copy').addEventListener('click', ()=>{
+        navigator.clipboard && navigator.clipboard.writeText(qs('#cipher-output').value);
+        alert('Copied!');
+      });
+    }
+
+    function caesarShift(str, amount){
+      if(amount < 0) return caesarShift(str, amount + 26);
+      let output = '';
+      for(let i=0;i<str.length;i++){
+        let c = str[i];
+        if(c.match(/[a-z]/i)){
+          const code = str.charCodeAt(i);
+          let base = (code >= 65 && code <= 90) ? 65 : 97;
+          let shifted = ((code - base + amount) % 26) + base;
+          output += String.fromCharCode(shifted);
+        } else {
+          output += c;
+        }
+      }
+      return output;
+    }
+
+    // -------------
+    // TERMINAL / COMMANDS
+    // -------------
+    runCmdBtn.addEventListener('click', runCommand);
+    cmdInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') runCommand(); });
+
+    function runCommand(){
+      const cmd = cmdInput.value.trim();
+      if(!cmd) return;
+      logTerminal(`> ${cmd}`);
+      handleCommand(cmd.toLowerCase());
+      cmdInput.value = '';
+    }
+
+    function handleCommand(cmd){
+      if(cmd === 'status'){
+        logTerminal(`System status: ${state.agents.length} agents online. Threat: ${state.threat}`, 'sys');
+        addFeedItem('Operator Command', 'Status checked by operator.', 'info');
+      } else if(cmd === 'list agents'){
+        state.agents.forEach(a => logTerminal(`${a.codename} — ${a.skill} • ${a.status}`));
+      } else if(cmd.startsWith('encrypt ')){
+        const plain = cmd.slice(8);
+        const cipher = caesarShift(plain, 5);
+        logTerminal(`Encrypted: ${cipher}`);
+      } else if(cmd === 'help'){
+        logTerminal('Commands: status, list agents, encrypt <text>, help, clear');
+      } else if(cmd === 'clear'){
+        terminal.innerHTML = '';
+      } else {
+        logTerminal('Unknown command. Type "help" for commands.');
+      }
+    }
+
+    // -------------
+    // EXPORT LOGS
+    // -------------
+    qs('#open-logs').addEventListener('click', ()=>{
+      const txt = state.logs.map(l => `[${l.t}] ${l.tag||'log'}: ${l.msg}`).join('\\n');
+      const blob = new Blob([txt], {type:'text/plain'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'spyline-logs.txt';
+      a.click();
+      URL.revokeObjectURL(url);
+      logTerminal('Exported logs.', 'util');
+    });
+
+    // -------------
+    // HEADER / TIME
+    // -------------
+    function updateHeaderTime(){
+      qs('#time-now').textContent = new Date().toLocaleString();
+    }
+
+    // -------------
+    // THREAT LEVEL
+    // -------------
+    function setThreat(level){
+      state.threat = level;
+      updateThreat();
+      logTerminal(`Threat level set to ${level}`, 'threat');
+      if(level === 'HIGH') addFeedItem('Threat Elevated', 'Alert: Threat level now HIGH. Increase surveillance.', 'critical');
+    }
+
+    function updateThreat(){
+      const el = qs('#threat-level');
+      el.textContent = state.threat;
+      if(state.threat === 'LOW') el.style.color = 'var(--accent)';
+      else if(state.threat === 'MEDIUM') el.style.color = 'var(--accent-2)';
+      else el.style.color = 'var(--danger)';
+    }
+
+    // -------------
+    // BUTTONS: quick actions
+    // -------------
+    qs('#btn-alert').addEventListener('click', ()=>{
+      addFeedItem('Global Alert', 'Immediate communication to all active agents: return to safe houses.', 'critical');
+      setThreat('HIGH');
+    });
+    qs('#btn-scan').addEventListener('click', ()=>{
+      simulateEvent();
+      addFeedItem('Scan Complete', 'Local area scanned. No anomalies detected.', 'info');
+    });
+
+    qs('#open-login').addEventListener('click', ()=> {
+      window.scrollTo({top:0,behavior:'smooth'});
+      usernameInput.focus();
+      logTerminal('Opened secure login prompt.', 'ui');
+    });
+
+    // -------------
+    // Mission brief sample (dynamic)
+    // -------------
+    const missionText = [
+      "Operation Nightfall: Disrupt covert shipments routing through the northern channel. Primary objective: plant tracking device, gather manifest. Secondary objective: extract asset 'Mercury'. Avoid collateral and maintain plausible deniability.",
+      "Operation Bluewater: Monitor encrypted comms between offshore nodes. Deploy SIGINT probes. High caution regarding naval patrols. Field agent in position: Echo-1.",
+      "Operation Iris: Prepare cyber-***** for mid-tier bank node to retrieve forged credentials. Team: Ivory-2 (SIGINT), Raven-7 (Field). Low signature entry recommended.",
+    ];
+    function refreshMission(){
+      const m = missionText[Math.floor(Math.random()*missionText.length)];
+      qs('#mission-brief').textContent = m;
+    }
+    setInterval(refreshMission, 20000);
+    refreshMission();
+
+    // -------------
+    // Small UI helpers
+    // -------------
+    qs('#btn-mission').addEventListener('click', ()=> {
+      window.scrollTo({top:0,behavior:'smooth'});
+      addFeedItem('Operator', 'Viewed Missions pane.', 'info');
+    });
+    qs('#btn-agents').addEventListener('click', ()=> {
+      agentsEl.querySelector('.agent') && agentsEl.querySelector('.agent').scrollIntoView({behavior:'smooth',block:'center'});
+      addFeedItem('Operator', 'Opened Agents pane.', 'info');
+    });
+    qs('#btn-tools').addEventListener('click', ()=> {
+      openCipherTool();
+      addFeedItem('Operator', 'Opened Tools.', 'info');
+    });
+
+    // -------------
+    // Accessibility / keyboard shortcuts
+    // -------------
+    document.addEventListener('keydown', (e) => {
+      if(e.key === 'l' && e.ctrlKey){
+        e.preventDefault();
+        usernameInput.focus();
+      }
+      if(e.key === 'm' && e.ctrlKey){
+        e.preventDefault();
+        qs('#feed-simulate').click();
+      }
+    });
+
+    // -------------
+    // Initialize app
+    // -------------
+    init();
+
+    // Extra: small periodic heartbeat to simulate "complexity"
+    setInterval(()=> {
+      // randomly add an informational feed or small log
+      if(Math.random()>0.7) addFeedItem('Telemetry', 'Background sync completed.', 'info');
+      if(Math.random()>0.92) setThreat(['LOW','MEDIUM','HIGH'][Math.floor(Math.random()*3)]);
+    }, 15000);
+
+    // Expose some functions on window for debug (developer convenience)
+    window.spyline = {
+      state, addFeedItem, dropBlip, generateCodename, caesarShift,
+    };
+
+  </script>
+</body>
+</html>

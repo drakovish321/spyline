@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spyline Recruitment Terminal</title>
+<style>
+:root {
+  --bg: #02060a;
+  --panel: #041019;
+  --accent: #00ffc8;
+  --accent2: #00b4ff;
+  --text: #b8e1dd;
+  --danger: #ff4d4d;
+  --ok: #00ff99;
+  --muted: #486b74;
+  --mono: 'Courier New', Courier, monospace;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(800px 400px at 20% 20%, rgba(0,255,200,0.05), transparent),
+              radial-gradient(800px 600px at 80% 80%, rgba(0,180,255,0.04), transparent),
+              var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 16px;
+  overflow: hidden;
+}
+
+#terminal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 700px;
+  max-width: 95%;
+  height: 480px;
+  background: var(--panel);
+  border: 2px solid rgba(0,255,200,0.15);
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0,255,200,0.1), inset 0 0 20px rgba(0,255,200,0.04);
+  overflow-y: auto;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.line {
+  display: block;
+  white-space: pre-wrap;
+  margin: 2px 0;
+}
+
+.prompt {
+  color: var(--accent);
+}
+
+.cursor {
+  display: inline-block;
+  width: 8px;
+  background: var(--accent);
+  animation: blink 1s step-end infinite;
+  margin-left: 3px;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--accent);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 16px;
+  width: 80%;
+  outline: none;
+  padding: 4px;
+}
+
+button {
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 14px;
+  padding: 6px 14px;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: 0.2s;
+}
+
+button:hover {
+  background: var(--accent);
+  color: var(--bg);
+  text-shadow: none;
+}
+
+.fade {
+  animation: fadeIn 0.6s ease forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+#msg {
+  color: var(--danger);
+  margin-top: 8px;
+  white-space: pre-wrap;
+}
+
+.success {
+  color: var(--ok) !important;
+}
+
+.blinking-text {
+  animation: glowPulse 2s infinite;
+}
+
+@keyframes glowPulse {
+  0%, 100% { text-shadow: 0 0 6px var(--accent); }
+  50% { text-shadow: 0 0 18px var(--accent2); }
+}
+
+.hidden {
+  display: none !important;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0,255,200,0.2);
+  border-radius: 10px;
+}
+
+#modeToggle, #modeToggleBack {
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+#modeToggle:hover, #modeToggleBack:hover {
+  color: var(--accent);
+}
+
+/* ASCII header */
+.ascii {
+  color: var(--accent2);
+  font-weight: bold;
+  text-shadow: 0 0 10px rgba(0,180,255,0.5);
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+#loadingScreen {
+  position: fixed;
+  inset: 0;
+  background: black;
+  color: var(--accent);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  z-index: 1000;
+}
+
+.progress {
+  width: 300px;
+  max-width: 80%;
+  height: 12px;
+  border: 1px solid var(--accent);
+  margin-top: 12px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  animation: load 5s linear forwards;
+}
+
+@keyframes load {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+/* Pulse effect for login confirmation */
+@keyframes pulse {
+  0%, 100% { color: var(--accent); }
+  50% { color: var(--accent2); }
+}
+
+/* Decorative terminal scanlines */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 255, 200, 0.03),
+    rgba(0, 255, 200, 0.03) 2px,
+    transparent 2px,
+    transparent 4px
+  );
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+</style>
+</head>
+<body>
+<div id="loadingScreen">
+  <div class="ascii">
+   ███████╗██████╗ ██╗   ██╗██╗     ██╗███╗   ██╗███████╗<br>
+   ██╔════╝██╔══██╗██║   ██║██║     ██║████╗  ██║██╔════╝<br>
+   █████╗  ██████╔╝██║   ██║██║     ██║██╔ ██╗ ██║█████╗  <br>
+   ██╔══╝  ██╔═══╝ ██║   ██║██║     ██║██║  ╚██╗██║██╔══╝  <br>
+   ███████╗██║     ╚██████╔╝███████╗██║   ╚███║███████╗<br>
+   ╚══════╝╚═╝      ╚═════╝ ╚══════╝╚═╝    ╚══╝╚══════╝
+  </div>
+  <div>Initializing secure console...</div>
+  <div class="progress"><div class="progress-bar"></div></div>
+</div>
+
+<div id="terminal" class="hidden">
+  <div class="line">[SYS] Boot sequence complete.</div>
+  <div class="line">[SYS] Secure channel established.</div>
+  <div class="line">[AUTH] Welcome to the Spyline Recruitment Interface.</div>
+  <div class="line">[INFO] Please authenticate to proceed.</div>
+  <br>
+  <div id="formContainer" class="fade">
+    <div id="signupMode">
+      <div class="line"><span class="prompt">Agent Codename:</span></div>
+      <input type="text" id="username" placeholder="Enter codename">
+      <div class="line"><span class="prompt">Passphrase:</span></div>
+      <input type="password" id="password" placeholder="Enter passphrase">
+      <br>
+      <button id="signupBtn">ENLIST</button>
+      <div id="msg"></div>
+      <div id="modeToggle">Already enlisted? <u>LOGIN HERE</u></div>
+    </div>
+    <div id="loginMode" class="hidden">
+      <div class="line"><span class="prompt">Agent Codename:</span></div>
+      <input type="text" id="loginUser" placeholder="Enter codename">
+      <div class="line"><span class="prompt">Passphrase:</span></div>
+      <input type="password" id="loginPass" placeholder="Enter passphrase">
+      <br>
+      <button id="loginBtn">LOGIN</button>
+      <div id="loginMsg"></div>
+      <div id="modeToggleBack">Need registration? <u>ENLIST HERE</u></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const loading = document.getElementById('loadingScreen');
+const terminal = document.getElementById('terminal');
+const progressBar = document.querySelector('.progress-bar');
+
+progressBar.addEventListener('animationend', () => {
+  loading.classList.add('hidden');
+  terminal.classList.remove('hidden');
+  bootUpSequence();
+});
+
+function bootUpSequence() {
+  const lines = terminal.querySelectorAll('.line');
+  lines.forEach((line, i) => {
+    setTimeout(() => line.classList.add('fade'), 100 * i);
+  });
+}
+
+// Toggle between signup and login
+const signupMode = document.getElementById('signupMode');
+const loginMode = document.getElementById('loginMode');
+const modeToggle = document.getElementById('modeToggle');
+const modeToggleBack = document.getElementById('modeToggleBack');
+
+modeToggle.addEventListener('click', () => {
+  signupMode.classList.add('hidden');
+  loginMode.classList.remove('hidden');
+  clearMessages();
+});
+
+modeToggleBack.addEventListener('click', () => {
+  loginMode.classList.add('hidden');
+  signupMode.classList.remove('hidden');
+  clearMessages();
+});
+
+function clearMessages() {
+  document.getElementById('msg').innerText = '';
+  document.getElementById('loginMsg').innerText = '';
+}
+
+// SIGNUP PROCESS
+document.getElementById('signupBtn').addEventListener('click', async () => {
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  const msg = document.getElementById('msg');
+  msg.innerText = '';
+
+  if (!username || !password) {
+    msg.innerText = '[ERR] Missing codename or passphrase.';
+    return;
+  }
+
+  msg.innerText = '[SYS] Processing enlistment...';
+
+  try {
+    const res = await fetch('/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.text();
+    if (data === 'ok') {
+      msg.innerText = '[AUTH] Enlistment successful.';
+      msg.classList.add('success');
+      setTimeout(() => {
+        window.location.href = 'index.html?user=' + username;
+      }, 1200);
+    } else {
+      msg.innerText = `[ERR] ${data}`;
+      msg.classList.remove('success');
+    }
+  } catch (err) {
+    msg.innerText = '[ERR] Network or server error.';
+  }
+});
+
+// LOGIN PROCESS
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  const username = document.getElementById('loginUser').value.trim();
+  const password = document.getElementById('loginPass').value;
+  const msg = document.getElementById('loginMsg');
+  msg.innerText = '';
+
+  if (!username || !password) {
+    msg.innerText = '[ERR] Missing codename or passphrase.';
+    return;
+  }
+
+  msg.innerText = '[SYS] Verifying credentials...';
+
+  try {
+    const res = await fetch('/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (data.status === 'ok') {
+      msg.innerText = '[AUTH] Access granted.';
+      msg.classList.add('success');
+      setTimeout(() => {
+        window.location.href = 'index.html?user=' + data.username;
+      }, 1200);
+    } else {
+      msg.innerText = '[ERR] Invalid credentials.';
+      msg.classList.remove('success');
+    }
+  } catch (err) {
+    msg.innerText = '[ERR] Connection failure.';
+  }
+});
+
+// Optional: typing sound simulation
+function playBeep(freq = 440, duration = 0.05) {
+  const ctx = new AudioContext();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.frequency.value = freq;
+  osc.type = 'square';
+  osc.start();
+  gain.gain.setValueAtTime(0.1, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+  osc.stop(ctx.currentTime + duration);
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key.length === 1) playBeep();
+});
+</script>
+</body>
+</html>
