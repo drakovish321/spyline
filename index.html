@@ -331,7 +331,7 @@ document.getElementById('signupBtn').addEventListener('click', async () => {
       msg.innerText = '[AUTH] Enlistment successful.';
       msg.classList.add('success');
       setTimeout(() => {
-        window.location.href = 'index.html?user=' + username;
+        window.location.href = 'hehe.html?user=' + username; // redirect changed
       }, 1200);
     } else {
       msg.innerText = `[ERR] ${data}`;
@@ -367,7 +367,7 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
       msg.innerText = '[AUTH] Access granted.';
       msg.classList.add('success');
       setTimeout(() => {
-        window.location.href = 'index.html?user=' + data.username;
+        window.location.href = 'hehe.html?user=' + data.username; // redirect changed
       }, 1200);
     } else {
       msg.innerText = '[ERR] Invalid credentials.';
